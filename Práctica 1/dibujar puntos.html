@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dibujar puntos de color haciendom click en canvas</title>
+</head>
+
+<body onload="init()">
+    <canvas id="myCanvas" width="640" height="480"></canvas>
+</body>
+
+<script id="shaderVs" type="x-shader/x-vertex">
+	attribute vec4 a_Position;
+  attribute float a_EspacioOcup;
+    void main() {
+
+        gl_Position = a_Position;
+        gl_PointSize = a_EspacioOcup;
+      }
+
+</script>
+<script id="shaderFs" type="x-shader/x-fragment">
+  precision mediump float;
+  uniform vec4 a_fragColores;
+    void main() {
+        gl_FragColor = a_fragColores;
+    }
+</script>
+
+<script>
+    function init() {
+        // Get canvas object from the DOM
+        var canvas = document.getElementById("myCanvas");
+
+        // Init WebGL context
+        var gl = canvas.getContext("webgl");
+        if (!gl) {
+            console.log("Failed to get the rendering context for WebGL");
+            return;
+        }
+        // Register event handler
+        canvas.onmousedown = function(ev) {
+        click(ev, gl, canvas);
+        };
+        // Init shaders
+        var vs = document.getElementById('shaderVs').innerHTML;
+        var fs = document.getElementById('shaderFs').innerHTML;
+
+
+        if (!initShaders(gl, vs, fs)) {
+            console.log('Failed to intialize shaders.');
+            return;
+        }
+    }
+
+    function initShaders(gl, vs_source, fs_source) {
+        // Compile shaders
+        var vertexShader = makeShader(gl, vs_source, gl.VERTEX_SHADER);
+        var fragmentShader = makeShader(gl, fs_source, gl.FRAGMENT_SHADER);
+
+        // Create program
+        var glProgram = gl.createProgram();
+
+        // Attach and link shaders to the program
+        gl.attachShader(glProgram, vertexShader);
+        gl.attachShader(glProgram, fragmentShader);
+        gl.linkProgram(glProgram);
+        if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS)) {
+            alert("Unable to initialize the shader program");
+            return false;
+        }
+
+        // Use program
+        gl.useProgram(glProgram);
+        gl.program = glProgram;
+
+        return true;
+    }
+    function makeShader(gl, src, type) {
+        var shader = gl.createShader(type);
+        gl.shaderSource(shader, src);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            alert("Error compiling shader: " + gl.getShaderInfoLog(shader));
+            return;
+        }
+        return shader;
+    }
+</script>
+<script>
+  var coordenadas = [];
+  var espacio = [];
+  var colores = [];
+  function click(ev, gl, canvas) {
+    // Coordinates of canvas origin
+    var rect = ev.target.getBoundingClientRect();
+    // relative x coordinate of click in canvas
+    var clickX = ev.clientX - rect.left;
+    // relative y coordinate of click in canvas
+    var clickY = ev.clientY - rect.top;
+    // WebGL coordinates (3D)
+    var halfCanvasWidth = canvas.width / 2;
+    var halfCanvasHeight = canvas.height / 2;
+    var x = (clickX - halfCanvasWidth) / halfCanvasWidth;
+    var y = (halfCanvasHeight - clickY) / halfCanvasHeight;
+    var xyz = [x, y, 0];
+    var colorfinal = [];
+    var espaciooc = [];
+    if (x>0.7 || x<-0.7 || y>0.7 || y<-0.7){
+      colorfinal = [1.0, 1.0, 1.0, 1.0];
+      espaciooc= 20;
+    }else if (x>0.0 && y>0.0){
+      colorfinal = [1.0, 0.0, 0.0, 1.0];
+      espaciooc = 10;
+    }else if(x>0.0 && y<0.0){
+      colorfinal = [0.0, 1.0, 0.0, 1.0];
+      espaciooc = 10;
+    }else if(x<0.0 && y<0.0){
+      colorfinal = [0.0, 0.0, 1.0, 1.0];
+      espaciooc = 10;
+    }else{
+      colorfinal = [1.0, 0.0, 0.5, 1.0];
+      espaciooc = 10;
+    }
+
+
+    coordenadas.push(xyz);
+    espacio.push(espaciooc);
+    colores.push(colorfinal);
+
+    var a_Position = gl.getAttribLocation(gl.program, "a_Position");
+    var a_EspacioOcup = gl.getAttribLocation(gl.program, "a_EspacioOcup");
+    var a_fragColores = gl.getUniformLocation(gl.program, "a_fragColores");
+
+
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    for (var i = 0; i < coordenadas.length; i++) {
+      console.log(coordenadas[i]);
+      gl.vertexAttrib3fv(a_Position, coordenadas[i]);
+      console.log(espacio[i]);
+      gl.vertexAttrib1f(a_EspacioOcup, espacio[i]);
+      gl.uniform4fv(a_fragColores, colores[i]);
+  		gl.drawArrays(gl.POINTS, 0, 1);
+  }
+}
+</script>
+</html>

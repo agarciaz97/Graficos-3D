@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang= "es" dir = "ltr">
 
 <head>
-    <title>Dibujar puntos de color haciendom click en canvas</title>
+    <title>Dibujar puntos de color haciendo click en canvas</title>
 </head>
 
 <body onload="init()">
@@ -34,14 +34,19 @@
 
         // Init WebGL context
         var gl = canvas.getContext("webgl");
+
+        canvas.onmousedown = function(ev) {
+        click(ev, gl, canvas);
+        };
+
         if (!gl) {
             console.log("Failed to get the rendering context for WebGL");
             return;
         }
-        // Register event handler
-        canvas.onmousedown = function(ev) {
-        click(ev, gl, canvas);
-        };
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
         // Init shaders
         var vs = document.getElementById('shaderVs').innerHTML;
         var fs = document.getElementById('shaderFs').innerHTML;
@@ -132,14 +137,12 @@
     var a_EspacioOcup = gl.getAttribLocation(gl.program, "a_EspacioOcup");
     var a_fragColores = gl.getUniformLocation(gl.program, "a_fragColores");
 
-
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     for (var i = 0; i < coordenadas.length; i++) {
       console.log(coordenadas[i]);
       gl.vertexAttrib3fv(a_Position, coordenadas[i]);
-      console.log(espacio[i]);
       gl.vertexAttrib1f(a_EspacioOcup, espacio[i]);
       gl.uniform4fv(a_fragColores, colores[i]);
   		gl.drawArrays(gl.POINTS, 0, 1);

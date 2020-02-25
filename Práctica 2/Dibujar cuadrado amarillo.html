@@ -79,7 +79,7 @@
                 count = count + step;
                 break;
               }
-              
+
             };
             drawScene();
         }
@@ -89,8 +89,8 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             // Calcualte position
-            var translated = mat4.fromTranslation(mat4.create(), [EjeX,EjeY, 1.0]);
-            var scaled = mat4.fromScaling(mat4.create(), [scale, scale, 1.0]);
+            var translated = mat4.fromTranslation(mat4.create(), [EjeX,EjeY, 0.0]);
+            var scaled = mat4.fromScaling(mat4.create(), [scale, scale, 0.0]);
             var rotated = mat4.fromXRotation(mat4.create(),count);
             var matrix = mat4.multiply(mat4.create(), translated, scaled);
             var matrix2 = mat4.multiply(mat4.create(), matrix, rotated);
